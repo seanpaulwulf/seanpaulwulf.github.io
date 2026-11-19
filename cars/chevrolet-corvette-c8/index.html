@@ -1565,7 +1565,7 @@ function frontPose(){ return CAM_YAW+window.FRONT_SIGN*FRONT_TILT+window.FRONT_B
 window.FRONT_SIGN=window.FRONT_SIGN??-1; window.FRONT_BASE=window.FRONT_BASE??-Math.PI/2;
 function pick(i){ const G=garage; (window.__diag||function(){})('pick',i+' garage '+!!G+' mode '+mode); if(!G||mode!=='garage') return; const f=FLEET[i];
   if(G.picked>=0&&G.picked!==i) G.cars[FLEET[G.picked].id].visible=false;
-  G.picked=i; setFocus(i); showTip(-1); document.body.classList.add('picked');
+  G.picked=i; setFocus(i); setCarURL(f); showTip(-1); document.body.classList.add('picked');
   const g3=!!f.real&&!!G.cars[f.id]; document.body.classList.toggle('g3d',g3); g3busy(false); if(g3) window.__probe={id:f.id,at:performance.now()+2500};
   if(!g3&&(f.glb||(window.MAE_GLB||{})[f.id])&&G.spinnerRef){ g3busy(true); loadGLB(f,G.spinnerRef,G); }
   if(g3){ const c=G.cars[f.id]; c.visible=true; c.userData.grow=0; G.spinV=0; G.spin=frontPose(); G.lastDrag=T+2.4; const cr=$('#g3cred'), M=(window.MAE_GLB||{})[f.id]; if(M&&M.credit){ cr.textContent=M.credit; cr.href=M.url; cr.hidden=false; } else cr.hidden=true; }
@@ -1574,6 +1574,9 @@ function pick(i){ const G=garage; (window.__diag||function(){})('pick',i+' garag
   Q.car=f; if(Q.s&&(isBusy(Q.s)||(Q.e&&nextBusy(Q.s)&&nextBusy(Q.s)<Q.e))){ Q.s='';Q.e=''; } if(flow[qi]==='done') resetQuote(); else { showPick(); if(calEl&&calEl.querySelector('.cal-day')) paint(); summary(); } loadAvail();
   $('#pdp').scrollTop=0;
   Snd.tick(); }
+const CAR_PATH={"huracan": "lamborghini-huracan-evo-spyder", "f488": "ferrari-488-gtb", "mclaren": "mclaren-570s", "gt3rs": "porsche-911-gt3-rs", "urus": "lamborghini-urus", "c8": "chevrolet-corvette-c8", "c300": "mercedes-benz-c300-amg"};
+/* keep the address bar on the open car's own link, so it can be copied and shared */
+function setCarURL(f){ try{ const q=location.search; const u=f&&CAR_PATH[f.id]?'/cars/'+CAR_PATH[f.id]+'/'+q+'#car='+f.id:'/'+q; if(location.pathname+location.search+location.hash!==u) history.replaceState(null,'',u); const c=document.querySelector('link[rel=canonical]'); if(c) c.href='https://fleet.midnightautoexotics.com'+u.split(/[?#]/)[0]; }catch(_){ } }
 const DESC={
  huracan:["Pull up in a green 2022 Huracán and the conversation starts before the doors open. A naturally aspirated V10 behind your shoulders, all-wheel drive under you, and the kind of color that photographs itself.","It's our go-to for birthdays, Brickell nights and South Beach weekends. Easy to drive at city speed, unforgettable when the road opens up. We hand it over clean, fueled and ready for the camera."],
  f488:["A red Ferrari 488 is the classic exotic for a reason. Twin-turbo V8, a soundtrack that turns heads on Brickell Avenue, and the prancing horse on the wheel.","Book it for a proposal, a wedding exit or a weekend you want people to remember. We walk you through the car at pickup, so even first-time Ferrari drivers feel at home in minutes."],
@@ -1646,7 +1649,7 @@ function stepPhoto(d){ if(PS.sep){ setPhoto(PS.i+d); return; } if(PS.mode==='3d'
 $('#pPrev').onclick=()=>stepPhoto(-1); $('#pNext').onclick=()=>stepPhoto(1);
 $('#pf').addEventListener('click',e=>{ if(e.target.closest('.pnav')||PS.mode==='3d'||!PS.list.length) return; const p=PS.list[PS.i]; if(p) openLb(PS.list.map(x=>x.src),PS.i,PS.f); });
 { let sx=0,sy=0; $('#pf').addEventListener('pointerdown',e=>{ sx=e.clientX; sy=e.clientY; }); $('#pf').addEventListener('pointerup',e=>{ if(PS.mode==='3d') return; const dx=e.clientX-sx; if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(e.clientY-sy)) stepPhoto(dx<0?1:-1); }); }
-function unpick(){ const G=garage; if(!G||G.picked<0) return; V.on=false; document.body.classList.remove('g3d'); const id=FLEET[G.picked].id; G.picked=-1; document.body.classList.remove('picked'); Snd.noise(.6,{f0:3000,f1:300,vol:.25}); setTimeout(()=>{ if(G.picked<0) G.cars[id].visible=false; },700); canvas.focus({preventScroll:true}); }
+function unpick(){ const G=garage; if(!G||G.picked<0) return; setCarURL(null); V.on=false; document.body.classList.remove('g3d'); const id=FLEET[G.picked].id; G.picked=-1; document.body.classList.remove('picked'); Snd.noise(.6,{f0:3000,f1:300,vol:.25}); setTimeout(()=>{ if(G.picked<0) G.cars[id].visible=false; },700); canvas.focus({preventScroll:true}); }
 
 let dragging=false,dX=0,dY=0,lastX=0,lastT=0;
 canvas.addEventListener('pointermove',e=>{ if(garage&&garage.swiping&&garage.picked<0){ const G=garage, span=Math.abs((G.cards[1]?.th||.4)-(G.cards[0]?.th||0)), dx=e.clientX-dX; G.swOff=-dx/(innerWidth*.42)*span; if(Math.abs(dx)>8) G.swMoved=true; }
