@@ -1,4 +1,4 @@
-<!doctype html><html><head><script>if(!/car=/.test(location.hash))history.replaceState(null,'','#car=c300');document.documentElement.className+=' deepcar'</script><style>.deepcar #entry{display:none!important}.deepcar #pdp{transition:none!important}.deepcar #stage,.deepcar #gHud,.deepcar #intro,.deepcar #lite,.deepcar #flash{visibility:hidden!important}</style><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><script>if(!/car=/.test(location.hash))history.replaceState(null,'','#car=c300');document.documentElement.className+=' deepcar'</script><style>.deepcar #entry{display:none!important}.deepcar #pdp{transition:none!important}.deepcar body:not(.g3d) #stage,.deepcar #gHud,.deepcar #intro,.deepcar #lite,.deepcar #flash{visibility:hidden!important}</style><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 
 
 <title>Rent the Mercedes-Benz C300 AMG in Miami | Midnight Auto Exotics</title>
@@ -1394,7 +1394,7 @@ async function buildGarage(){
     const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1.55,1.55*1.78),mat); mesh.userData.i=i; s.add(mesh); G.cards.push({mesh,mat,h:0,drop:0,aw:0,base:new THREE.Vector3(),th:0}); });
   G.layout=()=>{ const span=innerWidth/innerHeight<.8?.42:.34; G.cards.forEach((c,i)=>{ c.th=(i-(FLEET.length-1)/2)*span; c.base.set(7*Math.sin(c.th),1.75,6.6-7*Math.cos(c.th)); }); }; G.layout();
   const cuts=await Promise.all(FLEET.map(f=>tex(`img/${f.id}-car.webp`)));
-  FLEET.forEach((f,i)=>{ const c=cuts[i]?makePhotoCar(f,cuts[i]):makeCar(f); c.visible=false; (cuts[i]?tt:spinner).add(c); G.cars[f.id]=c; G.spinnerRef=spinner; if(!LAZY3D) loadGLB(f,spinner,G); });
+  FLEET.forEach((f,i)=>{ const c=cuts[i]?makePhotoCar(f,cuts[i]):makeCar(f); c.visible=false; (cuts[i]?tt:spinner).add(c); G.cars[f.id]=c; G.spinnerRef=spinner; if(!LAZY3D&&!/deepcar/.test(document.documentElement.className)) loadGLB(f,spinner,G); });
   garage=G; (window.__diag||function(){})('garage-built'); setTimeout(()=>{ updateTags(); loadAvail(true); },0); return G;
 }
 
@@ -1888,18 +1888,29 @@ setRoute(location.hash==='#mafia'?'mafia':'garage'); goRoute(route); go(0);
 resize(); requestAnimationFrame(frame); window.__mae=1; (window.__diag||function(){})('module-ready','LAZY3D '+LAZY3D+' LITE '+LITE); { const fb=document.getElementById('fallback'); if(fb&&!fb.hidden){ fb.hidden=true; const en=document.getElementById('entry'); if(en) en.hidden=false; } }
 
 ;(function(){ var m=location.hash.match(/car=([\w-]+)/); if(!m) return; var i=FLEET.findIndex(function(f){return f.id===m[1];}); if(i<0) return;
-  /* SOLO CAR PAGE: no splash, no garage, no 3D scene. Only this car's page is built. */
-  var cur=i;
+  /* SOLO CAR PAGE: show this car's page at once, then its 3D model on the turntable.
+     The garage lobby, entry screen and intro are never shown; the 3D canvas stays hidden until the car is ready. */
+  var cur=i, ready=false;
   function paint(k){ var f=FLEET[k]; cur=k; setCarURL(f); showPhotos(f); fillPdp(k,f); Q.car=f; if(flow[qi]==='done') resetQuote(); else showPick(); summary(); loadAvail(); $('#pdp').scrollTop=0; }
-  mode='car'; canvas.style.visibility='hidden'; var en=$('#entry'); if(en) en.hidden=true;
+  mode='car'; var en=$('#entry'); if(en) en.hidden=true;
   document.body.classList.add('ready','picked','solo');
   try{ paint(i); }catch(e){ console.error('car page',e); }
   addEventListener('pointerdown',function(){ try{ Snd.init(); Snd.ctx&&Snd.ctx.resume(); }catch(_){ } },{once:true,capture:true});
   var home=function(){ location.href='/'+location.search; };
-  $('#carPrev').onclick=function(){ paint((cur-1+FLEET.length)%FLEET.length); };
-  $('#carNext').onclick=function(){ paint((cur+1)%FLEET.length); };
+  function step(d){ var n=(cur+d+FLEET.length)%FLEET.length; if(ready){ cur=n; pick(n); } else paint(n); }
+  $('#carPrev').onclick=function(){ step(-1); }; $('#carNext').onclick=function(){ step(1); };
   $('#closeCar').onclick=home;
   document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('a[href="#garage"]'); if(a){ e.preventDefault(); e.stopPropagation(); home(); } },true);
+  if(LITE) return;
+  /* when the model appears, jump the camera straight to the turntable shot (no fly-in) */
+  new MutationObserver(function(){ if(document.body.classList.contains('g3d')&&garage&&mode==='garage'){ try{ stepGarage(1); }catch(_){ } } }).observe(document.body,{attributes:true,attributeFilter:['class']});
+  getGarage().then(function(){ var G=garage, f=FLEET[cur];
+    rp.scene=G.scene; bloom.enabled=quality>0; bloom.strength=.7; bloom.threshold=1.15; grade.uniforms.amt.value=.55; resize();
+    camera.up.set(0,1,0); G.cards.forEach(function(c){ c.drop=1; }); document.body.classList.add('inGarage');
+    G.picked=cur; setFocus(cur,true); mode='garage'; ready=true; stepGarage(1);
+    if(f.real){ var c=G.cars[f.id]; c.visible=true; G.spinV=0; G.spin=frontPose(); document.body.classList.add('g3d'); }
+    else if(f.glb&&G.spinnerRef){ g3busy(true); loadGLB(f,G.spinnerRef,G); }
+  }).catch(function(e){ console.error('3D',e); });
 })();
 </script>
 
