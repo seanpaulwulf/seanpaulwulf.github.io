@@ -1,4 +1,4 @@
-<!doctype html><html><head><script>if(!/car=/.test(location.hash))history.replaceState(null,'','#car=c300')</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><script>if(!/car=/.test(location.hash))history.replaceState(null,'','#car=c300');document.documentElement.className+=' deepcar'</script><style>.deepcar #entry{display:none!important}.deepcar #pdp{transition:none!important}.deepcar #stage,.deepcar #gHud,.deepcar #intro,.deepcar #lite,.deepcar #flash{visibility:hidden!important}</style><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 
 
 <title>Rent the Mercedes-Benz C300 AMG in Miami | Midnight Auto Exotics</title>
@@ -1888,8 +1888,19 @@ setRoute(location.hash==='#mafia'?'mafia':'garage'); goRoute(route); go(0);
 resize(); requestAnimationFrame(frame); window.__mae=1; (window.__diag||function(){})('module-ready','LAZY3D '+LAZY3D+' LITE '+LITE); { const fb=document.getElementById('fallback'); if(fb&&!fb.hidden){ fb.hidden=true; const en=document.getElementById('entry'); if(en) en.hidden=false; } }
 
 ;(function(){ var m=location.hash.match(/car=([\w-]+)/); if(!m) return; var i=FLEET.findIndex(function(f){return f.id===m[1];}); if(i<0) return;
-  var t=setInterval(function(){ if(mode==='garage'&&garage){ clearInterval(t); setTimeout(function(){ pick(i); },700); } },300);
-  setTimeout(function(){ var b=document.getElementById('enterBtn'); if(b) b.click(); },250); })();
+  /* SOLO CAR PAGE: no splash, no garage, no 3D scene. Only this car's page is built. */
+  var cur=i;
+  function paint(k){ var f=FLEET[k]; cur=k; setCarURL(f); showPhotos(f); fillPdp(k,f); Q.car=f; if(flow[qi]==='done') resetQuote(); else showPick(); summary(); loadAvail(); $('#pdp').scrollTop=0; }
+  mode='car'; canvas.style.visibility='hidden'; var en=$('#entry'); if(en) en.hidden=true;
+  document.body.classList.add('ready','picked','solo');
+  try{ paint(i); }catch(e){ console.error('car page',e); }
+  addEventListener('pointerdown',function(){ try{ Snd.init(); Snd.ctx&&Snd.ctx.resume(); }catch(_){ } },{once:true,capture:true});
+  var home=function(){ location.href='/'+location.search; };
+  $('#carPrev').onclick=function(){ paint((cur-1+FLEET.length)%FLEET.length); };
+  $('#carNext').onclick=function(){ paint((cur+1)%FLEET.length); };
+  $('#closeCar').onclick=home;
+  document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('a[href="#garage"]'); if(a){ e.preventDefault(); e.stopPropagation(); home(); } },true);
+})();
 </script>
 
 
